@@ -1,0 +1,8 @@
+- [首页](/)
+- **基础笔记**
+  - [机器学习数学基础](basis/math.md)
+  - [Micrograd](basis/micrograd.md)
+- **路线图**
+  - [学习资源](roadmap/roadmap.md)
+  - [学习资源](roadmap/study_plan.md)
+  - [学习资源](roadmap/llm_link.md)

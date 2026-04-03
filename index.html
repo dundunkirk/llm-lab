@@ -3,255 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI-Infra-Tutorial</title>
+  <title>llm-lab</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --theme-color: #2563eb;
+      --base-font-size: 15px;
+      --base-line-height: 1.75;
+      --base-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
-      line-height: 1.7;
-    }
+      --sidebar-background: #f9fafb;
+      --sidebar-border-color: #e5e7eb;
+      --sidebar-name-color: #111827;
+      --sidebar-nav-link-color: #374151;
+      --sidebar-nav-link-color--active: #2563eb;
+      --sidebar-nav-link-font-weight--active: 600;
 
-    a { color: #58a6ff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+      --content-max-width: 860px;
+      --heading-color: #111827;
+      --link-color: #2563eb;
+      --link-text-decoration: none;
+      --link-text-decoration--hover: underline;
+      --code-theme-background: #f3f4f6;
+      --code-theme-text: #111827;
+      --code-font-size: 0.875em;
+      --blockquote-border-color: #2563eb;
+      --blockquote-color: #6b7280;
 
-    /* ── Header ── */
-    header {
-      border-bottom: 1px solid #21262d;
-      padding: 48px 24px 40px;
-      text-align: center;
-    }
-    header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
-    header p  { margin-top: 10px; color: #8b949e; font-size: 1rem; }
-    .badge {
-      display: inline-block;
-      margin-top: 16px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      background: #1f6feb22;
-      border: 1px solid #1f6feb66;
-      color: #58a6ff;
-    }
-
-    /* ── Layout ── */
-    main {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 40px 24px 80px;
-    }
-
-    /* ── Section ── */
-    section { margin-bottom: 48px; }
-    section h2 {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #8b949e;
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #21262d;
-    }
-
-    /* ── Stage cards ── */
-    .stages { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-
-    .stage {
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 8px;
-      padding: 16px;
-      transition: border-color .15s;
-    }
-    .stage:hover { border-color: #58a6ff55; }
-
-    .stage-num {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: #58a6ff;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .stage h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
-    .stage ul  { list-style: none; padding: 0; }
-    .stage li  { font-size: 0.8rem; color: #8b949e; padding: 2px 0; }
-    .stage li::before { content: "·  "; color: #30363d; }
-
-    /* ── Resource list ── */
-    .resources { display: flex; flex-direction: column; gap: 8px; }
-
-    .resource {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 8px;
-      padding: 12px 16px;
-      transition: border-color .15s;
-    }
-    .resource:hover { border-color: #58a6ff55; }
-
-    .resource-icon {
-      width: 32px; height: 32px;
-      border-radius: 6px;
-      background: #1f6feb22;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem;
-      flex-shrink: 0;
-    }
-    .resource-body { flex: 1; min-width: 0; }
-    .resource-body strong { font-size: 0.875rem; display: block; }
-    .resource-body span   { font-size: 0.775rem; color: #8b949e; }
-
-    /* ── Files ── */
-    .files { display: flex; flex-direction: column; gap: 6px; }
-
-    .file {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: #161b22;
-      border: 1px solid #21262d;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      transition: border-color .15s;
-    }
-    .file:hover { border-color: #58a6ff55; }
-    .file-icon { color: #8b949e; font-size: 0.9rem; }
-    .file-name { color: #58a6ff; font-family: monospace; }
-    .file-desc { color: #8b949e; margin-left: auto; font-size: 0.775rem; }
-
-    /* ── Footer ── */
-    footer {
-      text-align: center;
-      padding: 24px;
-      font-size: 0.775rem;
-      color: #484f58;
-      border-top: 1px solid #21262d;
+      --table-head-background: #f3f4f6;
+      --table-row-odd-background: #ffffff;
+      --table-row-even-background: #f9fafb;
     }
   </style>
 </head>
 <body>
-
-<header>
-  <h1>AI-Infra-Tutorial</h1>
-  <p>LLM 原理与工程实践的个人学习记录</p>
-  <span class="badge">In Progress</span>
-</header>
-
-<main>
-
-  <!-- Roadmap -->
-  <section>
-    <h2>学习路线</h2>
-    <div class="stages">
-      <div class="stage">
-        <div class="stage-num">Phase 1</div>
-        <h3>基础准备</h3>
-        <ul>
-          <li>PyTorch & 反向传播</li>
-          <li>手写 autograd</li>
-          <li>最小语言模型直觉</li>
-        </ul>
-      </div>
-      <div class="stage">
-        <div class="stage-num">Phase 2</div>
-        <h3>Transformer</h3>
-        <ul>
-          <li>Attention Is All You Need</li>
-          <li>nanoGPT 源码</li>
-          <li>RoPE / GQA / RMSNorm</li>
-        </ul>
-      </div>
-      <div class="stage">
-        <div class="stage-num">Phase 3</div>
-        <h3>后训练</h3>
-        <ul>
-          <li>SFT & LoRA 微调</li>
-          <li>并行训练 Infra</li>
-          <li>PPO / GRPO / veRL</li>
-        </ul>
-      </div>
-      <div class="stage">
-        <div class="stage-num">Phase 4</div>
-        <h3>应用方向</h3>
-        <ul>
-          <li>RAG 系统</li>
-          <li>Agent 框架</li>
-          <li>推理优化</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- Resources -->
-  <section>
-    <h2>核心资源</h2>
-    <div class="resources">
-      <a class="resource" href="https://github.com/karpathy/nn-zero-to-hero" target="_blank">
-        <div class="resource-icon">🎬</div>
-        <div class="resource-body">
-          <strong>Karpathy — nn-zero-to-hero</strong>
-          <span>micrograd → makemore → nanoGPT，最佳入门视频系列</span>
-        </div>
-      </a>
-      <a class="resource" href="https://cs336.stanford.edu/spring2025/index.html" target="_blank">
-        <div class="resource-icon">🎓</div>
-        <div class="resource-body">
-          <strong>Stanford CS336</strong>
-          <span>Language Models from Scratch，含 tokenizer / training / RL 作业</span>
-        </div>
-      </a>
-      <a class="resource" href="https://d2l.ai" target="_blank">
-        <div class="resource-icon">📖</div>
-        <div class="resource-body">
-          <strong>d2l.ai — 动手学深度学习</strong>
-          <span>原理 + 代码双线，中文版友好</span>
-        </div>
-      </a>
-      <a class="resource" href="https://github.com/volcengine/verl" target="_blank">
-        <div class="resource-icon">⚙️</div>
-        <div class="resource-body">
-          <strong>veRL</strong>
-          <span>字节跳动开源 RL 训练框架，重点读 core_algos.py</span>
-        </div>
-      </a>
-    </div>
-  </section>
-
-  <!-- Files -->
-  <section>
-    <h2>文档索引</h2>
-    <div class="files">
-      <a class="file" href="roadmap/roadmap.md" target="_blank">
-        <span class="file-icon">📄</span>
-        <span class="file-name">roadmap/roadmap.md</span>
-        <span class="file-desc">四阶段学习路线图</span>
-      </a>
-      <a class="file" href="roadmap/study_plan.md" target="_blank">
-        <span class="file-icon">📄</span>
-        <span class="file-name">roadmap/study_plan.md</span>
-        <span class="file-desc">12 周执行计划</span>
-      </a>
-      <a class="file" href="roadmap/llm_link.md" target="_blank">
-        <span class="file-icon">🔗</span>
-        <span class="file-name">roadmap/llm_link.md</span>
-        <span class="file-desc">学习资源汇总</span>
-      </a>
-    </div>
-  </section>
-
-</main>
-
-<footer>
-  Built with plain HTML · <a href="https://github.com/zikunchen/llm-lab" target="_blank">GitHub</a>
-</footer>
-
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      name: 'llm-lab',
+      repo: 'https://github.com/zikunchen/llm-lab',
+      loadSidebar: true,
+      loadNavbar: false,
+      subMaxLevel: 2,
+      auto2top: true,
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-katex@1/dist/docsify-katex.js"></script>
 </body>
 </html>
