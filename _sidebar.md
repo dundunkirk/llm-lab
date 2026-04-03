@@ -3,6 +3,6 @@
   - [机器学习数学基础](basis/math.md)
   - [Micrograd](basis/micrograd.md)
 - **路线图**
-  - [学习资源](roadmap/roadmap.md)
-  - [学习资源](roadmap/study_plan.md)
+  - [学习路线](roadmap/roadmap.md)
+  - [12 周执行计划](roadmap/study_plan.md)
   - [学习资源](roadmap/llm_link.md)
