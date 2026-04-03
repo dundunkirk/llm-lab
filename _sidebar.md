@@ -1,8 +1,6 @@
 - [首页](/)
 - **基础笔记**
-  - [机器学习数学基础](basis/math.md)
   - [Micrograd](basis/micrograd.md)
-  - [测试笔记](basis/test.md)
 - **路线图**
   - [学习路线](roadmap/roadmap.md)
   - [12 周执行计划](roadmap/study_plan.md)
