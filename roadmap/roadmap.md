@@ -6,21 +6,20 @@
 
 ---
 
-## 第一阶段：基础准备
+## PyTorch 与反向传播
 
-> 不追求全面，补到能进入下一阶段即可。
-
-### PyTorch + 反向传播
 - 理解计算图、链式法则、梯度更新
 - 动手：手写最小 autograd（参考 Karpathy micrograd）
 - 参考：[经典神经网络模型拓扑结构（PyTorch）](https://space.bilibili.com/59807853/channel/collectiondetail?sid=446911)
 
-### 最小语言模型直觉
+## 最小语言模型直觉
+
 - 从 bigram / char-level LM 开始，理解 next-token prediction
 - 理解 negative log likelihood / cross entropy
 - 动手：Karpathy [makemore](https://github.com/karpathy/nn-zero-to-hero) Lecture 2
 
-### 数学基础（按需补）
+## 数学基础（按需补）
+
 - 多元微积分（Jacobian、链式法则）
 - 矩阵分析（矩阵乘法、SVD）
 - 概率统计（先验、似然、后验）
@@ -28,16 +27,15 @@
 
 ---
 
-## 第二阶段：Transformer 与语言模型主干
+## Transformer 架构
 
-### Transformer 架构
 - 直接读论文：*Attention Is All You Need*（遇到不懂问大模型）
 - 理解 self-attention、residual、MLP、layer norm
 - 理解 BPE tokenizer：encode / decode 流程
 - 动手：Karpathy Lecture 7–8（nanoGPT + BPE tokenizer）
 - 课程：[Stanford CS336](https://cs336.stanford.edu/spring2025/index.html) tokenization / architectures 部分
 
-### 语言模型核心概念
+## 语言模型核心概念
 
 | 概念 | 要点 |
 |------|------|
@@ -47,16 +45,16 @@
 | 预训练 vs SFT | 数据形式不同：连续文本 vs QA 对 + chat_template |
 | 分词方式 | BPE（字节对编码）为主流 |
 
-### 大模型架构源码
+## 大模型架构源码
+
 - 锚点：HuggingFace transformers 中的 [Qwen2](https://github.com/huggingface/transformers/tree/main/src/transformers/models/qwen2)
 - 追踪主干：输入 → embedding → attention → hidden states → logits → loss
 - 重点机制：RoPE、GQA、RMSNorm、KV Cache
 
 ---
 
-## 第三阶段：后训练（Post-Training）
+## SFT（有监督微调）
 
-### SFT（有监督微调）
 - 动手用 `transformers` + `peft` 手写 LoRA 微调流程：
   - 数据处理：encode、padding、truncate、apply_chat_template
   - label mask：只对 response 部分计算 loss
@@ -65,13 +63,15 @@
 - 模型下载：[ModelScope](https://modelscope.cn)（国内免梯子）/ [hf-mirror](https://hf-mirror.com)
 - 参考：CS336 A5 SFT 视角
 
-### 系统视角（Infra）
+## 系统视角（Infra）
+
 - **Profiling**：统计参数量、激活内存、optimizer state、KV cache
 - **并行基础**：data parallel / tensor parallel / pipeline parallel 的区别
 - **推理系统**：prefill vs decode、KV cache 作用、batching / latency / throughput
 - 参考：CS336 A2、modern_ai_for_beginners pytorch distributed
 
-### RL（强化学习）
+## 强化学习（RL）
+
 - 先建立 post-training 总图：SFT → preference/reward → policy update
 - 理解 RL 在 LLM 里是"后训练优化"，而非"从零学控制"
 - 主线算法：策略梯度 → PPO（TRPO 的工程实现）→ GRPO → REINFORCE
@@ -82,19 +82,20 @@
 
 ---
 
-## 第四阶段：应用方向（按需选择）
+## RAG（检索增强生成）
 
-### RAG（检索增强生成）
 - 核心：分块策略 > embedding 模型选择
 - 重点：分块方法、embedding 模型微调、提升召回率的 trick
 
-### Agent
+## Agent
+
 - 核心流程：ReAct（推理 + 行动 + 反馈循环）
 - 两个关键问题：上下文如何注入（skills）、历史如何存储（memory）
 - 参考实现：[nanobot](https://github.com/rashadphz/nanobot)
 - 进阶：Agentic RL（小模型 Agent 效果提升）+ veRL 框架
 
-### Text2SQL
+## Text2SQL
+
 - 上下文工程的典型应用，按需学习
 
 ---
