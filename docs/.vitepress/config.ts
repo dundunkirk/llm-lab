@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 import mathjax3 from 'markdown-it-mathjax3'
 
 export default defineConfig({
+  base: '/llm-lab/',
   title: 'llm-lab',
   description: 'LLM 原理与工程实践的个人学习记录',
   lang: 'zh-CN',
