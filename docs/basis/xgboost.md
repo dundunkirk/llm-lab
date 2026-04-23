@@ -1,370 +1,244 @@
-## 1. 泰勒展开：把复杂函数在某一点附近“局部多项式化”
+# XGBoost
+
+## 1. 泰勒展开：把复杂函数局部多项式化
 
 ### 1.1 核心思想
-泰勒展开的目的，是在展开点附近，用一个更容易计算的多项式近似原函数。
 
-若函数 $f(x)$ 在 $x=a$ 附近足够光滑，则它在 $a$ 处的泰勒展开为：
-
-$$
-f(x)=\sum_{n=0}^{\infty}\frac{f^{(n)}(a)}{n!}(x-a)^n
-$$
-
-前几项写开就是：
+若函数 $f(x)$ 在 $x=a$ 附近足够光滑，则：
 
 $$
-f(x)=f(a)+f'(a)(x-a)+\frac{f''(a)}{2!}(x-a)^2+\frac{f^{(3)}(a)}{3!}(x-a)^3+\cdots
+f(x)=f(a)+f'(a)(x-a)+\frac{f''(a)}{2!}(x-a)^2+\cdots
 $$
 
-其中：
+- 一阶项描述局部斜率；二阶项描述局部弯曲。
+- 展开点取 $a=0$ 即为麦克劳林展开。
 
-- $0$ 阶导数就是函数本身：$f^{(0)}(a)=f(a)$；
-- 一阶项描述局部斜率；
-- 二阶项描述局部弯曲；
-- 更高阶项继续修正局部形状。
-
-若展开点是 $a=0$，就得到 **麦克劳林展开**：
-
-$$
-f(x)=\sum_{n=0}^{\infty}\frac{f^{(n)}(0)}{n!}x^n
-$$
-### 1.2 二阶泰勒展开在机器学习里的意义
-在优化问题里，二阶泰勒展开尤其重要，因为它把复杂目标函数局部近似成“线性项 + 二次项”的形式：
+### 1.2 二阶展开在优化中的意义
 
 $$
 f(x+\Delta x) \approx f(x)+f'(x)\Delta x+\frac{1}{2}f''(x)(\Delta x)^2
 $$
 
-这相当于把原函数局部变成一个二次函数，而二次函数通常更容易优化。
+把复杂目标函数局部近似成二次函数，二次函数有闭式最优解，这是 XGBoost 的核心工具。
 
-### 1.3 多元函数的二阶形式
-对多元函数 $f(\mathbf{x})$，二阶展开可写成：
+### 1.3 多元形式
 
 $$
 f(\mathbf{x}+\Delta\mathbf{x}) \approx f(\mathbf{x}) + \nabla f(\mathbf{x})^\top \Delta\mathbf{x} + \frac{1}{2}\Delta\mathbf{x}^\top H(\mathbf{x})\Delta\mathbf{x}
 $$
 
-其中：
+其中 $\nabla f$ 是梯度，$H$ 是 Hessian 矩阵，分别描述下降方向与曲率。
 
-- $\nabla f(\mathbf{x})$ 是梯度；
-- $H(\mathbf{x})$ 是 Hessian 矩阵；
-- 一阶项给出下降方向；
-- 二阶项反映曲率。
+## 2. 从 GBDT 到 XGBoost：加法模型
 
+### 2.1 Boosting 基本想法
 
-## 2. 从 GBDT 到 XGBoost：逐步加树的加法模型
-
-### 2.1 Boosting 的基本想法
-Boosting 属于串行集成学习：后一轮模型依赖前一轮的预测结果。和 Bagging 不同，Boosting 不是“各树独立投票”，而是“前一棵树先预测，后一棵树继续修正前面的误差”。
-
-对 GBDT / XGBoost 而言，整体模型写成：
+Boosting 是串行集成：后一棵树修正前一棵树的误差。整体模型为：
 
 $$
-\hat y_i = \sum_{k=1}^{K} f_k(x_i)
+\hat{y}_i = \sum_{k=1}^{K} f_k(x_i)
 $$
 
-其中每个 $f_k$ 都是一棵回归树。
+> 对比 Bagging（如随机森林）：各树独立并行，最后投票；Boosting 各树串行，逐步修正。
 
-第 $t$ 轮时：
+第 $t$ 轮增量更新：
 
 $$
-\hat y_i^{(t)} = \hat y_i^{(t-1)} + f_t(x_i)
+\hat{y}_i^{(t)} = \hat{y}_i^{(t-1)} + f_t(x_i)
 $$
 
-也就是说，新树 $f_t$ 的作用不是从零开始预测，而是在旧预测基础上做增量修正。
+新树 $f_t$ 不从零预测，而是在已有结果上做增量修正。
 
 ### 2.2 GBDT 为什么拟合残差？
 
-#### 直觉：残差就是"还差多少"
+#### 直觉
 
-最直接的理解：残差 $r_i = y_i - \hat{y}_i^{(t-1)}$ 告诉新树"当前预测还差多少"，把差补上，加法模型就朝真实值靠近：
+残差 $r_i = y_i - \hat{y}_i^{(t-1)}$ 就是"当前还差多少"，新树把差补上，预测就朝真实值靠近：
 
 $$
-\hat{y}_i^{(t)} = \underbrace{\hat{y}_i^{(t-1)}}_{\text{已有预测}} + \underbrace{f_t(x_i)}_{\text{拟合残差}} \;\longrightarrow\; y_i
+\hat{y}_i^{(t)} = \underbrace{\hat{y}_i^{(t-1)}}_{\text{已有预测}} + \underbrace{f_t(x_i)}_{\text{补差}} \;\longrightarrow\; y_i
 $$
-
-但这只说了"是什么"，没说"为什么这样做是合理的"。
 
 #### 数学本质：函数空间的梯度下降
 
-更深层的原因来自**函数空间梯度下降**的视角。
+记号说明：
+- $y_i$：**固定的真实标签**，训练过程中不变
+- $\hat{y}_i^{(t-1)} = F_{t-1}(x_i)$：前 $t-1$ 棵树的累计预测值
+- $f_t(x_i)$：第 $t$ 棵新树，是我们要求的"增量函数"
 
-普通参数优化里，梯度下降更新的是参数向量：
+目标是找 $f_t$，使损失 $l(y_i,\, F_{t-1}(x_i) + f_t(x_i))$ 最小。
 
-$$
-\theta \leftarrow \theta - \eta\,\frac{\partial L}{\partial \theta}
-$$
-
-GBDT 的思路不同：把整个预测函数 $F(x)$ 本身看成"要优化的变量"，在函数空间沿着损失的负梯度方向走一步——每一步用一棵新树来近似这个负梯度：
+GBDT 把预测函数 $F(x)$ 本身看作优化变量，在**函数空间**做梯度下降——每步用一棵新树近似损失的负梯度：
 
 $$
 F_t(x) = F_{t-1}(x) + \eta \cdot h_t(x)
 $$
 
-每个样本 $i$ 上的"下降方向"为：
+每个样本的负梯度（即"最速下降方向"）为：
 
 $$
-\tilde{r}_i^{(t)} = -\frac{\partial\, l\bigl(y_i,\,\hat{y}_i\bigr)}{\partial\, \hat{y}_i}\Bigg|_{\hat{y}_i\,=\,F_{t-1}(x_i)}
+\tilde{r}_i^{(t)} = -\frac{\partial\, l(y_i,\,\hat{y}_i)}{\partial\, \hat{y}_i}\Bigg|_{\hat{y}_i = F_{t-1}(x_i)}
 $$
 
-新树 $h_t$ 就去拟合这组 $\tilde{r}_i^{(t)}$，让函数在当前位置沿最速下降方向更新。
+新树 $h_t$ 拟合这组 $\tilde{r}_i^{(t)}$，使函数沿减小损失的方向迈一步。
 
-#### 以 MSE 为例：负梯度恰好等于残差
+#### MSE 下负梯度 = 残差
 
-设 $l(y_i, \hat{y}_i) = \tfrac{1}{2}(y_i - \hat{y}_i)^2$，对预测值求导：
-
-$$
-\frac{\partial\, l}{\partial\,\hat{y}_i} = -\,(y_i - \hat{y}_i) = \hat{y}_i - y_i
-$$
-
-取负号：
+设 $l = \tfrac{1}{2}(y_i - \hat{y}_i)^2$：
 
 $$
-\tilde{r}_i = -\frac{\partial\, l}{\partial\,\hat{y}_i} = y_i - \hat{y}_i
+\frac{\partial l}{\partial \hat{y}_i} = \hat{y}_i - y_i
+\quad\Longrightarrow\quad
+\tilde{r}_i = -(\hat{y}_i - y_i) = y_i - \hat{y}_i
 $$
 
-**负梯度 $=$ 残差**。这不是巧合，而是 MSE 的结构决定的。
-
-#### 推广到一般损失：伪残差
-
-当损失函数不是 MSE 时（如 MAE、对数损失），负梯度不再等于普通残差，但 GBDT 仍用它来指导新树的拟合目标，此时称为**伪残差（pseudo-residual）**。几个常见例子：
-
-| 损失函数 | $l(y,\hat{y})$ | 负梯度（伪残差） |
-|---|---|---|
-| MSE | $\tfrac{1}{2}(y-\hat{y})^2$ | $y - \hat{y}$（即真实残差）|
-| MAE | $\|y-\hat{y}\|$ | $\mathrm{sign}(y-\hat{y})$ |
-| Log-loss（二分类） | $-y\ln\hat{p}-(1-y)\ln(1-\hat{p})$ | $y - \hat{p}$ |
-
-**核心结论**：GBDT 拟合的不是"残差"，而是**当前损失的负梯度**；只是对 MSE，两者恰好相同，所以历史上留下了"拟合残差"的说法。
-
+**负梯度恰好等于残差**，这是 MSE 的特殊结构，不是巧合。对其他损失函数（MAE、log-loss 等），负梯度不等于普通残差，但 GBDT 同样拟合它，统称**伪残差**。
 
 ## 3. XGBoost 的目标函数
 
-XGBoost 在训练时，不仅考虑训练误差，还考虑模型复杂度。目标函数写成：
+XGBoost 在损失之外显式加入正则项：
 
 $$
-\mathrm{Obj} = \sum_{i=1}^{n} l(y_i, \hat y_i) + \sum_{k=1}^{K} \Omega(f_k)
+\mathrm{Obj} = \sum_{i=1}^{n} l(y_i, \hat{y}_i) + \sum_{k=1}^{K} \Omega(f_k)
 $$
 
-其中：
-
-- $l(y_i,\hat y_i)$ 是样本损失；
-- $\Omega(f_k)$ 是第 $k$ 棵树的正则项。
-
-第 $t$ 轮只关心新增树 $f_t$，于是：
+第 $t$ 轮只优化新树 $f_t$，之前各树贡献为常数：
 
 $$
-\mathrm{Obj}^{(t)}
-=
-\sum_{i=1}^{n} l\bigl(y_i,\hat y_i^{(t-1)}+f_t(x_i)\bigr)+\Omega(f_t)+\mathrm{const}
+\mathrm{Obj}^{(t)} = \sum_{i=1}^{n} l\bigl(y_i,\,\hat{y}_i^{(t-1)}+f_t(x_i)\bigr)+\Omega(f_t)+\mathrm{const}
 $$
 
-这里的 `const` 表示和当前树无关的常数项。
+## 4. 对损失做二阶泰勒展开
 
-
-## 4. XGBoost 的关键：对损失做二阶泰勒展开
-
-### 4.1 为什么要展开？
-因为很多损失函数都不容易直接优化。XGBoost 的关键技巧，是把
+直接优化上式很难，XGBoost 对 $f_t(x_i)$ 做二阶泰勒展开：
 
 $$
-l\bigl(y_i,\hat y_i^{(t-1)}+f_t(x_i)\bigr)
-$$
-
-看成关于预测值 $\hat y_i^{(t-1)}$ 的函数，然后对增量 $f_t(x_i)$ 做二阶泰勒展开：
-
-$$
-l\bigl(y_i,\hat y_i^{(t-1)}+f_t(x_i)\bigr)
+l\bigl(y_i,\hat{y}_i^{(t-1)}+f_t(x_i)\bigr)
 \approx
-l\bigl(y_i,\hat y_i^{(t-1)}\bigr)
-+
- g_i f_t(x_i)
-+
-\frac{1}{2} h_i f_t(x_i)^2
+l\bigl(y_i,\hat{y}_i^{(t-1)}\bigr)
++ g_i f_t(x_i)
++ \frac{1}{2} h_i f_t(x_i)^2
 $$
 
-其中：
+其中 $g_i,\, h_i$ 是损失对当前预测值的一、二阶导数：
 
 $$
-g_i = \partial_{\hat y_i^{(t-1)}} l\bigl(y_i,\hat y_i^{(t-1)}\bigr)
+g_i = \frac{\partial\, l(y_i,\hat{y}_i^{(t-1)})}{\partial\,\hat{y}_i^{(t-1)}},
+\qquad
+h_i = \frac{\partial^2 l(y_i,\hat{y}_i^{(t-1)})}{\partial\,(\hat{y}_i^{(t-1)})^2}
 $$
 
-$$
-h_i = \partial^2_{\hat y_i^{(t-1)}} l\bigl(y_i,\hat y_i^{(t-1)}\bigr)
-$$
-
-于是，第 $t$ 轮优化目标就变成：
+去掉与 $f_t$ 无关的常数，第 $t$ 轮目标化简为：
 
 $$
-\mathrm{Obj}^{(t)} \approx
-\sum_{i=1}^{n}
-\left[
- g_i f_t(x_i)+\frac{1}{2}h_i f_t(x_i)^2
-\right]
-+\Omega(f_t)
+\mathrm{Obj}^{(t)} \approx \sum_{i=1}^{n}\left[g_i f_t(x_i)+\frac{1}{2}h_i f_t(x_i)^2\right]+\Omega(f_t)
 $$
 
-去掉常数后，只剩下与当前树有关的部分。
+**MSE 下的具体值**：取 $l=(y_i-\hat{y}_i)^2$，则 $g_i = 2(\hat{y}_i^{(t-1)}-y_i)$，$h_i = 2$。
 
-### 4.2 平方误差下的特殊情形
-若
-$$
-l(y_i,\hat y_i)=(y_i-\hat y_i)^2
-$$
+## 5. 树结构写入目标函数
 
-则：
-$$
-g_i = 2(\hat y_i^{(t-1)}-y_i)
-$$
-$$
-h_i = 2
-$$
-注：
-- $\hat y_i^{(t-1)}$ 视为 $x$
-- $f_t(x_i)$ 视为增量 $\Delta x$
-
-
-因此一阶项与“残差”直接相关，二阶项给出稳定的曲率信息。
-
-这一点也解释了：
-
-- GBDT 常被理解为“拟合残差”；
-- XGBoost 则是把这种思想推广到一般损失，并显式利用二阶信息。
-
-
-## 5. 树模型如何写进目标函数
-
-XGBoost 把一棵树写成：
+XGBoost 把一棵树表示为：
 
 $$
 f_t(x)=w_{q(x)}
 $$
 
-其中：
+- $q(x)$：样本 $x$ 落到的叶子编号；
+- $w_j$：第 $j$ 个叶子的输出值；
+- $T$：叶子总数。
 
-- $q(x)$ 表示样本落到哪一个叶子；
-- $w_j$ 表示第 $j$ 个叶子的分数；
-- $T$ 表示叶子数。
-
-正则项定义为：
+正则项惩罚复杂度：
 
 $$
 \Omega(f)=\gamma T + \frac{1}{2}\lambda \sum_{j=1}^{T} w_j^2
 $$
 
-含义很清楚：
+$\gamma T$ 抑制叶子过多，$\lambda\sum w_j^2$ 抑制叶子权重过大。
 
-- $\gamma T$ 惩罚叶子数过多，抑制树过深、过复杂；
-- $\lambda \sum w_j^2$ 惩罚叶子权重过大，抑制过拟合。
-
-把树形式代入目标函数后，可以把同一叶子上的样本聚合起来。定义：
+将树代入目标，把同一叶子 $j$ 内的样本聚合：
 
 $$
-G_j = \sum_{i\in I_j} g_i,
-\qquad
-H_j = \sum_{i\in I_j} h_i
+G_j = \sum_{i\in I_j} g_i,\qquad H_j = \sum_{i\in I_j} h_i
 $$
 
-其中 $I_j$ 表示落到第 $j$ 个叶子的样本集合。
-
-则目标函数变成：
+$G_j$ 是叶子 $j$ 内所有样本一阶导之和，$H_j$ 是二阶导之和，$I_j$ 为该叶子的样本集合。目标函数变成按叶子求和：
 
 $$
-\mathrm{Obj}^{(t)} = \sum_{j=1}^{T}
-\left[
-G_j w_j + \frac{1}{2}(H_j+\lambda) w_j^2
-\right] + \gamma T
+\mathrm{Obj}^{(t)} = \sum_{j=1}^{T}\left[G_j w_j + \frac{1}{2}(H_j+\lambda)w_j^2\right] + \gamma T
 $$
 
-这时每个叶子都变成一个独立的一元二次优化问题。
-
+每个叶子现在是一个独立的一元二次优化问题。
 
 ## 6. 叶子最优权重与结构分数
 
-对每个叶子上的二次函数求最优值，可得叶子最优权重：
+对每个叶子的二次目标对 $w_j$ 求导并令其为零：
 
 $$
-w_j^\ast = -\frac{G_j}{H_j+\lambda}
+\frac{\partial}{\partial w_j}\left[G_j w_j + \frac{1}{2}(H_j+\lambda)w_j^2\right] = G_j + (H_j+\lambda)w_j = 0
 $$
 
-将其代回目标函数，得到固定树结构下的最优目标值：
+解得叶子最优权重：
 
 $$
-\mathrm{Obj}^{\ast} = -\frac{1}{2}\sum_{j=1}^{T}\frac{G_j^2}{H_j+\lambda}+\gamma T
+w_j^* = -\frac{G_j}{H_j+\lambda}
 $$
 
-这个式子很重要，因为它告诉人：
-
-- 一个叶子“好不好”，不再只看误差；
-- 还要同时看梯度、Hessian 和正则项；
-- XGBoost 选树结构，本质是在让这个目标尽量更小。
-
-
-## 7. 分裂增益（Split Gain）
-
-若把一个叶子分裂成左右两个叶子，则分裂带来的收益为：
+代回目标函数，得固定树结构下的最优得分：
 
 $$
-\mathrm{Gain}=
-\frac{1}{2}
-\left(
-\frac{G_L^2}{H_L+\lambda}
+\mathrm{Obj}^* = -\frac{1}{2}\sum_{j=1}^{T}\frac{G_j^2}{H_j+\lambda}+\gamma T
+$$
+
+这个值越小，树结构越好。$\lambda$ 在分母起到正则作用——梯度信息越弱或 $\lambda$ 越大，叶子权重越趋向 0。
+
+## 7. 分裂增益
+
+XGBoost 用**贪心算法**逐层建树：枚举所有特征和分裂点，选 Gain 最大的一个。
+
+将叶子分裂成左右两个叶子的收益为：
+
+$$
+\mathrm{Gain}=\frac{1}{2}\left(\frac{G_L^2}{H_L+\lambda}+\frac{G_R^2}{H_R+\lambda}-\frac{(G_L+G_R)^2}{H_L+H_R+\lambda}\right)-\gamma
+$$
+
+- 前两项：分裂后左右子叶的得分；
+- 第三项：分裂前原叶子的得分；
+- 减 $\gamma$：增加一个叶子的复杂度代价。
+
+Gain $> 0$ 才值得分裂；否则停止，这是 XGBoost 正则化驱动剪枝的核心。
+
+## 8. 为什么 XGBoost 比普通 GBDT 更强
+
+| | GBDT | XGBoost |
+|---|---|---|
+| 拟合目标 | 负梯度（一阶） | 负梯度 + 二阶曲率 |
+| 正则化 | 无或手动 | 显式内置于目标函数 |
+| 叶子权重 | 启发式 | 闭式最优解 |
+| 分裂准则 | 基于误差减少 | 基于 Gain 公式，可剪枝 |
+
+核心优势：二阶信息让近似更准，使学习步长更稳；正则化统一进目标，避免单独调参。
+
+## 9. 总结
+
+$$
+\underbrace{\text{泰勒展开}}_{\text{局部二次近似}}
 +
-\frac{G_R^2}{H_R+\lambda}
--
-\frac{(G_L+G_R)^2}{H_L+H_R+\lambda}
-\right)
--\gamma
+\underbrace{\text{Boosting}}_{\text{逐轮加树修正误差}}
++
+\underbrace{\text{正则化}}_{\text{控制复杂度}}
+\;\Longrightarrow\;
+\text{XGBoost}
 $$
 
-解释：
+每轮新增一棵树，对目标在当前预测处做二阶泰勒展开，再通过闭式解求最优叶子权重、用 Gain 公式搜索最优分裂结构。
 
-- 前两项是左右子叶分裂后的收益；
-- 第三项是分裂前原叶子的收益；
-- 最后减去 $\gamma$，表示增加一个分裂会带来复杂度惩罚。
-
-因此：
-
-- 若 Gain 足够大，就值得分裂；
-- 若 Gain 不大，说明“继续分”不划算，应停止或剪枝。
-
-这也是 XGBoost 里“正则化驱动分裂与剪枝”的核心来源。
-
-
-## 8. 为什么 XGBoost 往往比普通 GBDT 更强
-
-可以把它概括成 4 点：
-
-1. **目标函数更完整**：不仅最小化损失，还显式加入模型复杂度惩罚；
-2. **利用二阶信息**：不仅用梯度，还用 Hessian，使近似和优化更稳；
-3. **叶子权重有闭式解**：每次分裂、每个叶子的最优分数都能直接算；
-4. **树结构选择有明确评分公式**：Gain 直接衡量“分还是不分”。
-
-所以，XGBoost 不是简单地“多棵树叠起来”，而是：
-
-> 在 boosting 框架下，用二阶泰勒展开把复杂损失局部二次化，再结合正则化，把“树结构搜索 + 叶子权重求解”统一到一个可计算的目标函数里。
-
-
-## 9. 最后的理解框架
-
-可以把整件事浓缩成一条主线：
-
-1. **泰勒展开** 提供了一种“局部二次近似”的工具；
-2. **Boosting** 提供了一种“逐轮加模型修正误差”的框架；
-3. **XGBoost** 则把两者结合起来：
-   - 每轮新增一棵树；
-   - 对目标函数在当前预测处做二阶泰勒展开；
-   - 再通过正则化和闭式解，选择最优叶子权重与分裂结构。
-
-一句话说：
-
-> XGBoost 的数学核心，不是“树很多”，而是“在 boosting 框架下，用二阶泰勒展开把每一步优化变成一个带正则的可解二次问题”。
-
+> XGBoost 的数学核心：在 boosting 框架下，用二阶泰勒展开把每一步优化变成带正则的可解二次问题。
 
 ## 参考
 
 - XGBoost 官方文档：Introduction to Boosted Trees
-- OpenStax Calculus Volume 2：Taylor and Maclaurin Series
-- [通俗理解kaggle比赛大杀器xgboost\_xgboost目标函数-CSDN博客](https://blog.csdn.net/v_JULY_v/article/details/81410574)
-- [如何通俗地解释泰勒公式？](https://www.zhihu.com/question/21149770)
-- [\[损失函数设计\] 为什么多分类问题损失函数用交叉熵损失，而不是 MSE](https://www.bilibili.com/video/BV13NHfewE3o?spm_id_from=333.788.videopod.sections&vd_source=977765d761bdef8d6cb7b4e570bb9270)
-- [线性回归——lasso回归和岭回归（ridge regression） - wuliytTaotao - 博客园](https://www.cnblogs.com/wuliytTaotao/p/10837533.html)
+- [通俗理解 XGBoost — CSDN](https://blog.csdn.net/v_JULY_v/article/details/81410574)
+- [如何通俗地解释泰勒公式？— 知乎](https://www.zhihu.com/question/21149770)
+- [\[损失函数设计\] 为什么多分类用交叉熵而非 MSE](https://www.bilibili.com/video/BV13NHfewE3o)
+- [Lasso 与岭回归 — 博客园](https://www.cnblogs.com/wuliytTaotao/p/10837533.html)
