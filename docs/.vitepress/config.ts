@@ -17,7 +17,7 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '路线图', link: '/roadmap/roadmap' },
-      { text: 'GitHub', link: 'https://github.com/zikunchen/llm-lab' },
+      { text: 'GitHub', link: 'https://github.com/dundunkirk/llm-lab' },
     ],
 
     sidebar: [
@@ -41,7 +41,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/zikunchen/llm-lab' },
+      { icon: 'github', link: 'https://github.com/dundunkirk/llm-lab' },
     ],
 
     search: {
