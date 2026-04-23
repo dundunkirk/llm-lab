@@ -17,11 +17,24 @@
   --vp-home-hero-name-background: linear-gradient(118deg, #FBBF24 0%, #F59E0B 40%, #34D399 100%);
 }
 
-.vp-doc h1,
-.vp-doc h2,
-.vp-doc h3,
-.vp-doc h4 {
+/* h1: 琥珀色，最突出 */
+.vp-doc h1 {
   color: var(--vp-c-brand-1);
+}
+
+/* h2: 琥珀色，主章节标题 */
+.vp-doc h2 {
+  color: var(--vp-c-brand-1);
+}
+
+/* h3: 默认文字色，与 h2 形成明显对比 */
+.vp-doc h3 {
+  color: var(--vp-c-text-1);
+}
+
+/* h4: 稍淡，层级最低 */
+.vp-doc h4 {
+  color: var(--vp-c-text-2);
 }
 
 .vp-doc strong {
