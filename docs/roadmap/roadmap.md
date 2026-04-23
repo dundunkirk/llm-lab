@@ -4,7 +4,6 @@
 >
 > 策略：基础只补到够用 → 尽快进入源码 → RL 只学大模型真正常用的那一支
 
----
 
 ## PyTorch 与反向传播
 
@@ -25,7 +24,6 @@
 - 概率统计（先验、似然、后验）
 - 参考：[深度学习的数学基础](https://space.bilibili.com/59807853/channel/collectiondetail?sid=462509)
 
----
 
 ## Transformer 架构
 
@@ -51,7 +49,6 @@
 - 追踪主干：输入 → embedding → attention → hidden states → logits → loss
 - 重点机制：RoPE、GQA、RMSNorm、KV Cache
 
----
 
 ## SFT（有监督微调）
 
@@ -80,7 +77,6 @@
 - 数学深究（选修）：[赵世钰《强化学习的数学原理》](https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning)
 - 视频：[李宏毅 DRL](https://www.youtube.com/watch?v=z95ZYgPgXOY&list=PLJV_el3uVTsODxQFgzMzPLa16h6B8kWM_) / [RL4LLM B站](https://space.bilibili.com/59807853/channel/collectiondetail?sid=4048984)
 
----
 
 ## RAG（检索增强生成）
 
@@ -98,7 +94,6 @@
 
 - 上下文工程的典型应用，按需学习
 
----
 
 ## 参考资源汇总
 
@@ -116,7 +111,6 @@
 | 框架 | [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) |
 | 课程 | [fast.ai](https://course.fast.ai/) |
 
----
 
 ## 学习原则
 

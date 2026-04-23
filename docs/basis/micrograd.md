@@ -2,7 +2,6 @@
 
 Karpathy 的 `micrograd` 用最少的代码实现了自动求导的核心机制，揭示了神经网络"能学会"的底层原因：损失函数对参数可微 → 链式法则把误差传回每个参数 → 负梯度更新把损失压低。
 
----
 
 ## 训练闭环
 
@@ -17,7 +16,6 @@ $$x \xrightarrow{\text{forward}} \hat{y} \xrightarrow{\text{loss}} \mathcal{L} \
 
 $$\theta \leftarrow \theta - \eta \frac{\partial \mathcal{L}}{\partial \theta}$$
 
----
 
 ## 计算图
 
@@ -29,7 +27,6 @@ $$a = bc,\quad d = a + e,\quad L = d^2$$
 
 意义在于：每个局部操作只需知道自己的导数，全局梯度由链式法则自动组合出来。神经网络是一个巨大的复合函数 $\mathcal{L} = f(\theta)$，直接手推导数不现实，但拆成计算图后每个节点只负责自己那一小步。
 
----
 
 ## 梯度
 
@@ -119,7 +116,6 @@ $$\mathcal{L}(\theta - \eta\,\nabla_\theta \mathcal{L}) \approx \mathcal{L}(\the
 
 以上结论依赖一阶泰勒近似，该近似在 $\eta$ 足够小时才成立。若 $\eta$ 过大，二阶项 $O(\eta^2)$ 不可忽略，可能导致损失不降反升。这就是学习率需要调参的根本原因：**太小收敛慢，太大破坏近似保证，可能发散**。
 
----
 
 ## micrograd 的实现
 
@@ -185,7 +181,6 @@ o.label = 'o'
 o.backward()
 ```
 
----
 
 ## 注意事项
 
