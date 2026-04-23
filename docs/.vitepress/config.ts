@@ -25,6 +25,7 @@ export default defineConfig({
         text: '基础笔记',
         items: [
           { text: 'Micrograd', link: '/basis/micrograd' },
+          { text: 'XGBoost', link: '/basis/xgboost' },
         ],
       },
       {
