@@ -255,7 +255,9 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   border-top: none;
+  border-left: 3px solid var(--lab-amber);
   padding-top: 0.4rem;
+  padding-left: 0.6em;
   margin-top: 1.6rem;
 }
 
@@ -265,13 +267,6 @@
   margin: 2rem 0;
 }
 
-.vp-doc h2::before {
-  content: '▎';
-  color: var(--lab-amber);
-  margin-right: 0.35em;
-  font-size: 0.85em;
-  opacity: 0.9;
-}
 
 .vp-doc h3 {
   font-size: 1.15rem;
